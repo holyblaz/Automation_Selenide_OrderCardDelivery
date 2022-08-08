@@ -1,0 +1,1 @@
+# Automation_Selenide_OrderCardDelivery [![Build status](https://ci.appveyor.com/api/projects/status/mww2a1yb1nnnxcgk/branch/main?svg=true)](https://ci.appveyor.com/project/holyblaz/automation-selenide-ordercarddelivery/branch/main)
