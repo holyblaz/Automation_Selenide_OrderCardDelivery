@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
 import static com.codeborne.selenide.Selenide.*;
 import static com.codeborne.selenide.Condition.*;
@@ -20,22 +21,6 @@ public class CardDeliveryTest {
         return LocalDate.now().plusDays(days).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
     }
 
-    Calendar calendar = Calendar.getInstance();
-    List<String> months = Arrays.asList("Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь");
-
-    public String setCalendar() {
-        calendar.add(Calendar.DAY_OF_MONTH, 7);
-        return months.get(calendar.get(Calendar.MONTH));
-    }
-
-    public String setDate() {
-        return Integer.toString(calendar.get(Calendar.DATE));
-    }
-
-    public String getValidDate() {
-        return new SimpleDateFormat("dd.MM.yyyy").format(calendar.getTime());
-    }
-
     @BeforeEach
     void openBrowser() {
         open("http://localhost:9999/");
@@ -44,6 +29,7 @@ public class CardDeliveryTest {
     @Test
     void shouldSendForm() {
         String planningDate = generateDate(5);
+
         $("[data-test-id='city'] input").setValue("Липецк");
         $x("//input[@placeholder='Дата встречи']").sendKeys(Keys.chord(Keys.SHIFT, Keys.HOME), Keys.BACK_SPACE);
         $x("//input[@placeholder='Дата встречи']").setValue(planningDate);
@@ -57,20 +43,26 @@ public class CardDeliveryTest {
 
     @Test
     void shouldSendFormWithDateAndCity() {
+
+        String validateDate = generateDate(7);
+        String calendarDate = String.valueOf(LocalDate.now().plusDays(7).getDayOfMonth());
+        String planningDate = String.valueOf(LocalDate.now().plusDays(7).getMonth());
+        String deliveryDate = String.valueOf(LocalDate.now().plusDays(3).getMonth());
+
         $("[data-test-id='city'] input").setValue("Пе");
         $$x("//span[@class='menu-item__control']").get(1).click();
         $x("//span[@class='input__icon']").click();
 
-        while (!$("[class='calendar__name']").getText().contains(setCalendar())) {
+        if (!(Objects.equals(planningDate,deliveryDate))) {
             $("[data-step='1']").click();
         }
 
-        $$("table.calendar__layout td").find(text(setDate())).click();
+        $$("table.calendar__layout td").find(text(calendarDate)).click();
         $x("//input[@name='name']").setValue("Пронин Илья");
         $x("//input[@name='phone']").setValue("+79099878106");
         $("[data-test-id='agreement']").click();
         $x("//span[@class='button__text']").click();
         $x("//*[contains(text(), 'Успешно!')]").shouldBe(visible, Duration.ofSeconds(15));
-        $(".notification__content").shouldHave(Condition.text("Встреча успешно забронирована на " + getValidDate()), Duration.ofSeconds(15)).shouldBe(Condition.visible);
+        $(".notification__content").shouldHave(Condition.text("Встреча успешно забронирована на " + validateDate), Duration.ofSeconds(15)).shouldBe(Condition.visible);
     }
 }
